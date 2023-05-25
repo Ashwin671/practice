@@ -1,85 +1,110 @@
-
-// BFS
-#include <bits/stdc++.h>
+#include<iostream>
+#include<stdlib.h>
+#include<queue>
 using namespace std;
+class node
+{
+	public:
 
+		node *left, *right;
+		int data;
+};
+class Breadthfs
+{
+	public:
 
-class Graph {
+	node *insert(node *, int);
+	void bfs(node *);
 
-	
-	int V;
-
-	
-	vector<list<int> > adj;
-
-public:
-
-	Graph(int V);
-
-	
-	void addEdge(int v, int w);
-
-	
-	void BFS(int s);
 };
 
-Graph::Graph(int V)
+node *insert(node *root, int data)
+// inserts a node in tree
 {
-	this->V = V;
-	adj.resize(V);
-}
+	if(!root)
+	{
+		root=new node;
+		root->left=NULL;
+		root->right=NULL;
+		root->data=data;
+		return root;
+	}
 
-void Graph::addEdge(int v, int w)
-{
-	
-	adj[v].push_back(w);
-}
+	queue<node *> q;
+	q.push(root);
 
-void Graph::BFS(int s)
-{
-	
-	vector<bool> visited;
-	visited.resize(V, false);
-
-	
-	list<int> queue;
-
-	
-	visited[s] = true;
-	queue.push_back(s);
-
-	while (!queue.empty()) {
-		
-		
-		s = queue.front();
-		cout << s << " ";
-		queue.pop_front();
-
-		
-		for (auto adjacent : adj[s]) {
-			if (!visited[adjacent]) {
-				visited[adjacent] = true;
-				queue.push_back(adjacent);
-			}
+	while(!q.empty())
+	{
+		node *temp=q.front();
+		q.pop();
+		if(temp->left==NULL)
+		{
+			temp->left=new node;
+			temp->left->left=NULL;
+			temp->left->right=NULL;
+			temp->left->data=data;
+			return root;
+		}
+		else
+		{
+			q.push(temp->left);
+		}
+		if(temp->right==NULL)
+		{
+			temp->right=new node;
+			temp->right->left=NULL;
+			temp->right->right=NULL;
+			temp->right->data=data;
+			return root;
+		}
+		else
+		{
+			q.push(temp->right);
 		}
 	}
 }
-
-
-int main()
+void bfs(node *head)
 {
-	
-	Graph g(4);
-	g.addEdge(0, 1);
-	g.addEdge(0, 2);
-	g.addEdge(1, 2);
-	g.addEdge(2, 0);
-	g.addEdge(2, 3);
-	g.addEdge(3, 3);
+	queue<node*> q;
+	q.push(head);
+	int qSize;
+	while (!q.empty())
+	{
+		qSize = q.size();
+		#pragma omp parallel for
+		//creates parallel threads
+		for (int i = 0; i < qSize; i++)
+		{
+			node* currNode;
+			#pragma omp critical
+			{
+				currNode = q.front();
+				q.pop();
+				cout<<"\t"<<currNode->data;
+			}// prints parent node
+			#pragma omp critical
+			{
+			if(currNode->left)// push parent's left node in queue
+				q.push(currNode->left);
+			if(currNode->right)
+				q.push(currNode->right);
+			}// push parent's right node in queue
+		}
+	}
+}
+int main(){
 
-	cout << "Following is Breadth First Traversal "
-		<< "(starting from vertex 2) \n";
-	g.BFS(2);
-
+	node *root=NULL;
+	int data;
+	char ans;
+	do
+	{
+		cout<<"\n enter data=>";
+		cin>>data;
+		root=insert(root,data);
+		cout<<"do you want insert one more node?";
+		cin>>ans;
+	}while(ans=='y'||ans=='Y');
+	bfs(root);
 	return 0;
 }
